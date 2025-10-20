@@ -190,3 +190,102 @@ function trabajandoAjax() {
         }
     });
 }
+
+//funcion en la que trabajamos con axios
+function trabajandoAxios() {
+    let localidad='Sevilla,es'; //por defecto por si no escriben nada en el input
+    let datos_devueltos;
+    let cadena='<h2>Previsión del Tiempo en ';
+    let urlPrevision='http://api.weatherapi.com/v1/forecast.json';
+    //mostramos el icono de carga ajax sin jquery
+    $("#cambiar").html("<img src='images/ajax_loader.webp'>");
+    //con un tamaño pequeño
+    $("#cambiar>img").css("width", "15%");
+    //si no está vacío recogemos el valor del input en el momento de hacer clic
+    if($("#localidad").val()!==''){
+        //concatemos con ,es para asegurarnos que la localidad está en España
+        localidad=$("#localidad").val()+',es';
+    }
+    //montamos la url para la consulta tipo get partiendo de la url base y añadimos los parametros de la consulta
+    //usamos axios
+    axios({
+        method: "get",
+        url: urlPrevision,
+        params: {
+            //la APIKEY está en config.js
+            key: APIKEY,
+            q: localidad,
+            //proporciona un máximo de tres días de previsión pero el primero siempre es el dia actual
+            days: 3,
+            //queremos también las alertas
+            alerts: 'yes',
+            //los datos en español
+            lang: 'es'
+        }
+    }).then(function(response){
+        //recogemos los datos devueltos
+        datos_devueltos=response.data;
+        //y trabajamos con ellos
+        cadena+=datos_devueltos.location.name+"</h2><div id='tiempo_previsiones'>";
+        //recogemos las coordenadas
+        coordenadas.lat=datos_devueltos.location.lat;
+        coordenadas.lon=datos_devueltos.location.lon;
+        //recorremos los dias de prevision devueltos y para cada dia sacamos la siguiente informacion
+        let dias_prevision=datos_devueltos.forecast.forecastday;
+        //empezamos en 0 que es el dia de hoy y mostramos la prevision de tres dias
+        for(let i=0; i<=dias_prevision.length-1; i++){
+            if(i===0){
+                cadena+='<div class="tiempo_prevision"><h3>El tiempo hoy</h3>';
+            } else {
+                cadena+='<div class="tiempo_prevision"><h3>Previsión para '+dias_prevision[i].date+"</h3>";
+            }
+            cadena+='<br><p>Salida del sol: '+dias_prevision[i].astro.sunrise+"</p>";
+            cadena+='<p>Puesta del sol: '+dias_prevision[i].astro.sunset+"</p><p>__________________</p>";
+            //para cada dia mostramos info a las 5:00 y a las 14:00, asi que tenemos que recorrer las horas de cada dia
+            for(let j=0; j<dias_prevision[i].hour.length; j++){
+                if(j===5 || j===14){
+                    //con el substring nos quedamos solo con la hora
+                    cadena+='<br><h4>'+dias_prevision[i].hour[j].time.substring(11)+'</h4>';
+                    cadena+="<p><img src='https:"+dias_prevision[i].hour[j].condition.icon+"'</img></p>";
+                    cadena+="<p>Temperatura: "+dias_prevision[i].hour[j].temp_c+"°</p><p>__________________</p>";
+                }
+            }
+            //las alertas son un array dentro del json, si la longitud es 0 no hay alertas, si hay las mostramos
+            if(datos_devueltos.alerts.alert.length!==0){
+                cadena+='<br><h4>Alertas</h4>';
+                alertas=datos_devueltos.alerts.alert;
+                alertas.forEach(function(alerta, i) {
+                    if(alerta.headline!==null){
+                        cadena+='<p>'+alerta.headline+'</p>';
+                    }
+                });
+            }
+            //cerramos el div de cada dia de prevision
+            cadena+='</div>';
+        }
+        //cerramos el div de la prevision de los tres dias
+        cadena+='</div>';
+        //modificamos el mapa
+        map.setView([coordenadas.lat, coordenadas.lon], 15);
+        marker.setLatLng([coordenadas.lat, coordenadas.lon]);
+        marker.setPopupContent("<b>Hola!</b><br>Estás en "+datos_devueltos.location.name).openPopup();
+        //y lo mostramos
+        $("#mapa_leaftlet").css('visibility', 'visible');
+
+        //modificamos el elemento con id cambiar
+        $("#cambiar").css('border', '2px solid black');
+        $("#cambiar").css('border-radius', '5px');
+        $("#cambiar").css('width', '100%');
+        $("#cambiar").html(cadena);
+    })
+    .catch(function (error) {
+        console.log(error);
+        $("#cambiar").css('border', '');
+        $("#cambiar").css('width', '80%');
+        $("#cambiar").html("<img src='images/ajax_not_working.png' width='20%'><br><br><p>Error producido: "+ error+"</p>");
+    })
+    .finally(function () {
+        // siempre sera ejecutado
+        console.log("Petición completa");
+    });
+}
