@@ -1,0 +1,3 @@
+// config.js.example
+// Copia este archivo como config.js y coloca tu propia API key de https://www.weatherapi.com/
+const APIKEY = 'AQUI_TU_API_KEY';
