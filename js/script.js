@@ -333,8 +333,9 @@ function trabajandoFetch(){
             for(let sitio in datos_devueltos){
                 //si el codigo del pais del sitio coincide con el de españa y el nombre con la localidad en minusculas
                 //he tenido que añadir el nombre porque hay sitios como granada que aparecen dos en españa
+                //las tildes dan problemas a la hora de comparar el nombre introducid en el input con el nombre devuelto en los datos
                 if(datos_devueltos[sitio].countryCode==="ES" 
-                    && datos_devueltos[sitio].name.toLowerCase()===localidad.toLowerCase()){
+                    && quitarTildes(datos_devueltos[sitio].name).toLowerCase()===quitarTildes(localidad).toLowerCase()){
                     nombre_sitio=datos_devueltos[sitio].name;
                     //recogemos los datos
                     poblacion=datos_devueltos[sitio].population;
@@ -386,4 +387,16 @@ function trabajandoFetch(){
         // siempre sera ejecutado
         console.log("Petición completa");
     });
+}
+
+
+//las tildes dan problemas a la hora de comparar el nombre introducid en el input con el nombre devuelto en los datos por geodb
+function quitarTildes(cadena){
+    //devolvemos la cadena donde reemplazamos el caracter entre // con el modificador g para que modifique todas
+    return cadena
+        .replace(/á/g, "a").replace(/Á/g, "A")
+        .replace(/é/g, "e").replace(/É/g, "E")
+        .replace(/í/g, "i").replace(/Í/g, "I")
+        .replace(/ó/g, "o").replace(/Ó/g, "O")
+        .replace(/ú/g, "u").replace(/Ú/g, "U");
 }
