@@ -289,3 +289,101 @@ function trabajandoAxios() {
         console.log("Petición completa");
     });
 }
+
+//funcion en la que trabajamos con fetch
+function trabajandoFetch(){
+    let localidad='Sevilla'; //por defecto por si no escriben nada en el input
+    let cadena='<div id="datos_localidad"><h2>Datos sobre ';
+    let urlMapa='http://geodb-free-service.wirefreethought.com/v1/geo/places';
+    //mostramos el icono de carga ajax
+    $("#cambiar").css('border', '');
+    $("#cambiar").html("<img src='images/ajax_loader.webp'>");
+    //con un tamaño pequeño
+    $("#cambiar>img").css("width", "15%");
+    //si no está vacío recogemos el valor del input en el momento de hacer clic
+    if($("#localidad").val()!==''){
+        localidad=$("#localidad").val();
+    }
+    //montamos la url para la peticion tipo get partiendo de la url base y añadimos los parametros de la consulta
+    urlMapa+='?limit=5&offset=0&types=CITY&namePrefix='+localidad+'&languageCode=es';
+    //usamos FETCH
+    fetch(urlMapa)
+        //la peticion en fetch es tipo GET por defecto, aunque podriamos indicarlo con {method: 'GET'} despues de la url
+        //al usar .then que son promesas ya estamos trabajando en asincrono
+        .then((resultado)=> {
+            //manejamos posibles errores de estado si el resultado no es ok
+            if(!resultado.ok) {
+                //fetch no captura los errores HTTP solo los errores de red, hay que manejarlos manualmente
+                throw new Error("Error: "+response.status);
+            } else {
+                return resultado.json();
+            }
+        })
+    .then(data =>{
+        //aqui trabajamos con los datos json que hemos recibido de la promesa anterior, los vamos a consumir
+        //puede darse el caso de que la localidad que queremos consultar no existe, nos devolvera datos vacíos 
+        if(!data || data.data.length===0){
+            //lanzamos un nuevo error
+            throw new Error("No tenemos datos sobre la localidad que quieres consultar");
+        } else {
+            //el json devuelto contiene data y metadata, nos vamos a quedar solo con data
+            let datos_devueltos=data.data;
+            let nombre_sitio, poblacion, pais, region;
+            //recorremos los datos con un bucle for in para practicar
+            for(let sitio in datos_devueltos){
+                //si el codigo del pais del sitio coincide con el de españa y el nombre con la localidad en minusculas
+                //he tenido que añadir el nombre porque hay sitios como granada que aparecen dos en españa
+                if(datos_devueltos[sitio].countryCode==="ES" 
+                    && datos_devueltos[sitio].name.toLowerCase()===localidad.toLowerCase()){
+                    nombre_sitio=datos_devueltos[sitio].name;
+                    //recogemos los datos
+                    poblacion=datos_devueltos[sitio].population;
+                    pais=datos_devueltos[sitio].country;
+                    region=datos_devueltos[sitio].region;
+                    //recogemos tambien las coordenadas para actualizar el mapa
+                    coordenadas.lat=datos_devueltos[sitio].latitude;
+                    coordenadas.lon=datos_devueltos[sitio].longitude;
+                } 
+            }
+            //si no habia ningun sitio con codigo de pais españa algunos datos seguirán undefined
+            // en ese caso nos quedamos con la primera posicion de los datos
+            if(poblacion===undefined && pais===undefined && region===undefined){
+                nombre_sitio=datos_devueltos[0].name;
+                poblacion=datos_devueltos[0].population;
+                pais=datos_devueltos[0].country;
+                region=datos_devueltos[0].region;
+                coordenadas.lat=datos_devueltos[0].latitude;
+                coordenadas.lon=datos_devueltos[0].longitude;
+            } 
+            //añadimos los datos a la cadena
+            cadena+=nombre_sitio+'</h2>';
+            cadena+='<br><p>Poblacion: '+poblacion+'</p><br>';
+            cadena+='<p>País: '+pais+'</p><br>';
+            cadena+='<p>Región: '+region+'</p>';
+            //modificamos el mapa
+            map.setView([coordenadas.lat, coordenadas.lon], 15);
+            marker.setLatLng([coordenadas.lat, coordenadas.lon]);
+            marker.setPopupContent("<b>Hola!</b><br><p>Estás en "+nombre_sitio+", ciudad situada en la región de "+region+
+                " en "+pais+" y con una población de "+poblacion+" habitantes</p>").openPopup();
+            //y lo mostramos
+            $("#mapa_leaftlet").css('visibility', 'visible');
+            //cerramos el div con id datos_localidad
+            cadena+='</div>';
+            //modificamos el elemento con id cambiar
+            $("#cambiar").css('width', '80%');
+            $("#cambiar").html(cadena);
+        }
+    })
+    .catch(error =>{
+        //capturamos posibles errores de red o los lanzados manualmente
+        console.log(error);
+        //quitamos el loader
+        $("#cambiar").css('border', '');
+        $("#cambiar").css('width', '80%');
+        $("#cambiar").html("<img src='images/ajax_not_working.png' width='20%'><br><br><p>Error producido: "+ error+"</p>");
+    })
+    .finally(function () {
+        // siempre sera ejecutado
+        console.log("Petición completa");
+    });
+}
