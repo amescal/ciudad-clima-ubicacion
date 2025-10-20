@@ -1,0 +1,79 @@
+/* Inicializacion */
+* {
+    box-sizing: border-box;
+    margin: 0; 
+    padding: 0; 
+}
+
+body {
+    width: 90%;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    color: wheat;
+    background-color: darkcyan;
+    padding: 1em;
+}
+
+#introducir_localidad {
+    padding: 1em;
+}
+
+nav button {
+    color: wheat;
+    background-color: darkcyan;
+    border: 2px solid rgb(2, 51, 51);
+    padding: 1em;
+    margin: 1em;
+    border-radius: 5px;
+}
+
+nav button:hover {
+    color: darkcyan;
+    background-color: wheat;
+}
+
+#cambiar {
+    width: 80%;
+    margin: 1em auto;
+    padding: 1em;
+    text-align: center;
+}
+
+#tiempo_hoy, #datos_localidad {
+    border: 2px solid black;
+    width: 50%;
+    margin: 0.5em auto;
+    border-radius: 5px;
+    padding: 1em;
+    background-color: rgb(217, 248, 248);
+}
+
+#tiempo_previsiones {
+    display:flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.5em;
+}
+
+.tiempo_prevision {
+    border: 2px solid black;
+    margin: 0.5em auto;
+    border-radius: 5px;
+    padding: 1em;
+    background-color: rgb(217, 248, 248);
+    width: 20%;
+}
+
+.tiempo_prevision:first-child {
+    border: 3px solid black;
+    background-color: rgb(132, 182, 182);
+}
+
+#mapa_leaftlet {
+    visibility: hidden;
+    height: 500px;
+    margin-bottom: 3em;
+}
